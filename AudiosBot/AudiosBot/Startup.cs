@@ -1,16 +1,13 @@
+using AudiosBot.Domain.Interfaces;
+using AudiosBot.Domain.Services;
+using AudiosBot.Infra.Integrations;
+using AudiosBot.Infra.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AudiosBot
 {
@@ -26,12 +23,20 @@ namespace AudiosBot
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AudiosBot", Version = "v1" });
             });
+
+            //Injections
+
+            //Domain
+            services.AddScoped<ICommandService, CommandService>();
+            services.AddScoped<ISearchService, SearchService>();
+
+            //Infra
+            services.AddScoped<IDropboxService, DropboxService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -8,4 +8,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AudiosBot.Domain\AudiosBot.Domain.csproj" />
+    <ProjectReference Include="..\AudiosBot.Infra\AudiosBot.Infra.csproj" />
+  </ItemGroup>
+
 </Project>

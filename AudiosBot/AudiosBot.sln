@@ -5,6 +5,12 @@ VisualStudioVersion = 16.0.31229.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudiosBot.API", "AudiosBot\AudiosBot.API.csproj", "{264A162D-A0D6-4C92-867E-4C2230DB8531}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudiosBot.Domain", "AudiosBot.Domain\AudiosBot.Domain.csproj", "{B5E7B15E-4760-4904-BC54-AC6165211D79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudiosBot.Infra", "AudiosBot.Infra\AudiosBot.Infra.csproj", "{445782C9-51E3-479C-880C-9F61F7B9DCCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudiosBot.Test", "AudiosBot.Test\AudiosBot.Test.csproj", "{71ED65CF-0956-49CF-8B98-13ABB61BE7ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +21,18 @@ Global
 		{264A162D-A0D6-4C92-867E-4C2230DB8531}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{264A162D-A0D6-4C92-867E-4C2230DB8531}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{264A162D-A0D6-4C92-867E-4C2230DB8531}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5E7B15E-4760-4904-BC54-AC6165211D79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5E7B15E-4760-4904-BC54-AC6165211D79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5E7B15E-4760-4904-BC54-AC6165211D79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5E7B15E-4760-4904-BC54-AC6165211D79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{445782C9-51E3-479C-880C-9F61F7B9DCCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{445782C9-51E3-479C-880C-9F61F7B9DCCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{445782C9-51E3-479C-880C-9F61F7B9DCCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{445782C9-51E3-479C-880C-9F61F7B9DCCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71ED65CF-0956-49CF-8B98-13ABB61BE7ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71ED65CF-0956-49CF-8B98-13ABB61BE7ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71ED65CF-0956-49CF-8B98-13ABB61BE7ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71ED65CF-0956-49CF-8B98-13ABB61BE7ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
