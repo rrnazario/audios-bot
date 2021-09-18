@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AudiosBot.Infra.Constants;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace AudiosBot.Infra.Helpers
 
                 var fileinfo = new FileInfo(filePath);
 
-                await bot.SendDocumentAsync(chatId, new InputOnlineFile(stream, fileinfo.Name));
+                await bot.SendAudioAsync(chatId, new InputOnlineFile(stream, fileinfo.Name));
 
                 return SendFileResult.SUCCESS;
             }
@@ -95,5 +96,7 @@ namespace AudiosBot.Infra.Helpers
             else
                 return Path.Combine(Directory.GetCurrentDirectory(), folder);
         }
+
+        public static bool UserIsAdmin(string Id) => AdminConstants.AdminChatId.Split(",").Contains(Id);
     }
 }

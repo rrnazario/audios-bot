@@ -1,4 +1,5 @@
 ﻿using AudiosBot.Infra.Interfaces;
+using AudiosBot.Infra.Models;
 using Dropbox.Api;
 using Dropbox.Api.Files;
 using System;
@@ -7,19 +8,36 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace AudiosBot.Infra.Integrations
 {
     public class DropboxService : IDropboxService
     {
         private readonly string _path = "/Audios";
         private readonly string Token = Environment.GetEnvironmentVariable("DropboxToken");
-        public async Task<byte[]> GetAudioContentAsync(string uid)
+
+        public DropboxService()
         {
             using var client = new DropboxClient(Token);
+            try
+            {
+                client.Files.CreateFolderV2Async(_path).GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                //log
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+            }
+        }
+        public async Task<List<AudioFile>> GetAudioContentAsync(string term)
+        {
+            using var client = new DropboxClient(Token);
+            var result = new List<AudioFile>();
 
             var list = await client.Files.ListFolderAsync(_path);
 
-            var search = list.Entries.Where(wh => wh.Name.Equals(uid));
+            var search = list.Entries.Where(wh => wh.Name.Contains(term));
             var metadatas = new List<Metadata>();
 
             if (search.Any() || list.HasMore)
@@ -30,21 +48,20 @@ namespace AudiosBot.Infra.Integrations
                 {
                     list = await client.Files.ListFolderContinueAsync(list.Cursor);
 
-                    metadatas.AddRange(list.Entries.Where(i => i.IsFile && i.Name.Equals(uid)));
+                    metadatas.AddRange(list.Entries.Where(i => i.IsFile && i.Name.Equals(term)));
                 }
 
                 foreach (var metadata in metadatas)
                 {
                     var fileName = metadata.AsFile.Name;
 
-                    using (var response = await client.Files.DownloadAsync(metadata.AsFile.PathLower))
-                    {
-                        return await response.GetContentAsByteArrayAsync();
-                    }
+                    using var response = await client.Files.DownloadAsync(metadata.AsFile.PathLower);
+
+                    result.Add(new() { Content = await response.GetContentAsByteArrayAsync(), Name = fileName });
                 }
             }
 
-            return null;
+            return result;
         }
 
         public async Task<bool> RemoveAudioAsync(string name)

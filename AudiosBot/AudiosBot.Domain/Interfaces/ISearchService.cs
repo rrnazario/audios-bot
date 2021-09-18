@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AudiosBot.Domain.Interfaces
@@ -14,6 +11,6 @@ namespace AudiosBot.Domain.Interfaces
         /// <param name="term"></param>
         /// <param name="currentSearchFolder"></param>
         /// <returns></returns>
-        Task<string[]> GetMatchedAudiosAsync(string term, string currentSearchFolder);
+        Task<List<string>> GetMatchedAudiosAsync(string term, string currentSearchFolder);
     }
 }

@@ -1,14 +1,37 @@
 ﻿using AudiosBot.Domain.Interfaces;
-using System;
+using AudiosBot.Infra.Interfaces;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AudiosBot.Domain.Services
 {
     public class SearchService : ISearchService
-    {        
-        public Task<string[]> GetMatchedAudiosAsync(string term, string currentSearchFolder)
+    {
+        private readonly IDropboxService _dropboxService;
+
+        public SearchService(IDropboxService dropboxService)
         {
-            throw new NotImplementedException();
+            _dropboxService = dropboxService;
+        }
+
+        public async Task<List<string>> GetMatchedAudiosAsync(string term, string currentSearchFolder)
+        {
+            var audios = await _dropboxService.GetAudioContentAsync(term);
+            var result = new List<string>();
+
+            if (audios.Any() && !Directory.Exists(currentSearchFolder))
+                Directory.CreateDirectory(currentSearchFolder);
+
+            foreach (var audio in audios)
+            {
+                var fullAudioName = $"{currentSearchFolder}\\{audio.Name}";
+                await File.WriteAllBytesAsync(fullAudioName, audio.Content);
+                result.Add(fullAudioName);
+            }
+
+            return result;
         }
     }
 }

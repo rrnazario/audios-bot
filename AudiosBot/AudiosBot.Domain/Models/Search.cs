@@ -17,6 +17,11 @@ namespace AudiosBot.Domain.Models
         }
         public User User { get; set; }
 
+        public Search()
+        {
+
+        }
+
         public Search(string conteudo) : this(JsonConvert.DeserializeObject(conteudo)) { }
 
         public Search(dynamic conteudoDinamico)

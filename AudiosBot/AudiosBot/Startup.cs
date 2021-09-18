@@ -31,12 +31,18 @@ namespace AudiosBot
 
             //Injections
 
+            //Auth
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+
             //Domain
-            services.AddScoped<ICommandService, CommandService>();
-            services.AddScoped<ISearchService, SearchService>();
+            services.AddSingleton<ICommandService, CommandService>();
+            services.AddSingleton<ISearchService, SearchService>();
 
             //Infra
-            services.AddScoped<IDropboxService, DropboxService>();
+            services.AddSingleton<IDropboxService, DropboxService>();
+
+            //HostedServices
+            services.AddHostedService<UploadService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using AudiosBot.Infra.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AudiosBot.Infra.Interfaces
 {
@@ -7,9 +9,9 @@ namespace AudiosBot.Infra.Interfaces
         /// <summary>
         /// Get the base64 image code from Dropbox.
         /// </summary>
-        /// <param name="uid"></param>
+        /// <param name="term"></param>
         /// <returns></returns>
-        Task<byte[]> GetAudioContentAsync(string uid);
+        Task<List<AudioFile>> GetAudioContentAsync(string term);
         Task<bool> UploadAudioAsync(string name, byte[] content);
         Task<bool> RemoveAudioAsync(string name);
     }

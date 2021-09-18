@@ -10,5 +10,6 @@ namespace AudiosBot.Domain.Interfaces
     public interface ICommandService
     {
         Task DefineAsync(Search search);
+        Task SearchAsync(Search search);
     }
 }
