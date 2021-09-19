@@ -16,6 +16,8 @@ ENV AdminChatId=${AdminChatId}
 ENV AdminMail=${AdminMail}
 ENV Users=${Users}
 
+RUN echo "$TelegramBotToken"
+
 COPY *.sln ./
 COPY AudiosBot/*.csproj ./AudiosBot/
 COPY AudiosBot.Domain/*.csproj ./AudiosBot.Domain/
