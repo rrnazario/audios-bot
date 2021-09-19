@@ -17,15 +17,15 @@ ENV AdminMail=$AdminMail
 ENV Users=$Users
 
 COPY *.sln ./
-COPY AudiosBot.API/*.csproj ./AudiosBot.API/
+COPY AudiosBot/*.csproj ./AudiosBot/
 COPY AudiosBot.Domain/*.csproj ./AudiosBot.Domain/
 COPY AudiosBot.Infra/*.csproj ./AudiosBot.Infra/
 COPY AudiosBot.Test/*.csproj ./AudiosBot.Test/
 
-RUN dotnet restore AudiosBot.API.sln
+RUN dotnet restore AudiosBot.sln
 
 COPY . ./
 
 RUN dotnet publish -c $build_mode -o out
 
-CMD ASPNETCORE_URLS=http://*:$PORT dotnet out/AudiosBot.API.dll
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet out/AudiosBot.dll
