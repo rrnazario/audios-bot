@@ -28,4 +28,4 @@ COPY . ./
 
 RUN dotnet publish -c $build_mode -o out
 
-CMD ASPNETCORE_URLS=http://*:$PORT dotnet out/AudiosBot.dll
+CMD ASPNETCORE_URLS=http://*:$PORT dotnet out/AudiosBot.API.dll
