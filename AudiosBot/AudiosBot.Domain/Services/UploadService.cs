@@ -106,7 +106,10 @@ namespace AudiosBot.Domain.Services
         private async Task MonitorUploadAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
+            {
+                LogHelper.Debug($"HostedService waiting for messages.");
                 await Task.Delay(TimeSpan.FromMinutes(5), token);
+            }
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
