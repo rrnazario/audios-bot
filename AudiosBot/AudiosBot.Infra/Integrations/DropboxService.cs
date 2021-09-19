@@ -1,4 +1,5 @@
-﻿using AudiosBot.Infra.Interfaces;
+﻿using AudiosBot.Infra.Constants;
+using AudiosBot.Infra.Interfaces;
 using AudiosBot.Infra.Models;
 using Dropbox.Api;
 using Dropbox.Api.Files;
@@ -14,7 +15,7 @@ namespace AudiosBot.Infra.Integrations
     public class DropboxService : IDropboxService
     {
         private readonly string _path = "/Audios";
-        private readonly string Token = Environment.GetEnvironmentVariable("DropboxToken");
+        private readonly string Token = AdminConstants.DropboxToken;
 
         public DropboxService()
         {

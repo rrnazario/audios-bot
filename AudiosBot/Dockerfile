@@ -6,17 +6,17 @@ ARG build_mode=Release
 
 #Arguments passed by .yml
 ARG TelegramBotToken
+ARG DropboxToken
 ARG AdminChatId
 ARG AdminMail
 ARG Users
 
 #env vars used on whole process
 ENV TelegramBotToken=${TelegramBotToken}
+ENV DropboxToken=${DropboxToken}
 ENV AdminChatId=${AdminChatId}
 ENV AdminMail=${AdminMail}
 ENV Users=${Users}
-
-RUN echo "$TelegramBotToken"
 
 COPY *.sln ./
 COPY AudiosBot/*.csproj ./AudiosBot/

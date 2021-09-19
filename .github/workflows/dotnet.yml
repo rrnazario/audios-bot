@@ -48,7 +48,7 @@ jobs:
 
           # (Optional, default: "")
           # Additional options of docker build command.
-          docker_options: "--no-cache --build-arg TelegramBotToken=${{ secrets.TELEGRAMBOTTOKEN }} --build-arg AdminChatId=${{ secrets.ADMINCHATID }} --build-arg AdminMail=${{ secrets.HEROKU_EMAIL }} --build-arg Users=${{ secrets.USERS }}"
+          docker_options: "--no-cache --build-arg TelegramBotToken=${{ secrets.TELEGRAMBOTTOKEN }} --build-arg AdminChatId=${{ secrets.ADMINCHATID }} --build-arg AdminMail=${{ secrets.HEROKU_EMAIL }} --build-arg Users=${{ secrets.USERS }} --build-arg DropboxToken=${{ secrets.DROPBOXTOKEN }}"
 
           # (Optional, default: "web")
           # Select the process type for which you want the docker container to be uploaded.
