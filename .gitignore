@@ -12,3 +12,6 @@
 /AudiosBot/AudiosBot.Test/obj
 /AudiosBot/AudiosBot.Test/bin/Debug/net5.0
 /AudiosBot/.vs/AudiosBot/config
+/AudiosBot/AudiosBot.Domain/bin/Release/net5.0
+/AudiosBot/AudiosBot.Infra/bin/Release/net5.0
+/AudiosBot/AudiosBot.Test/bin/Release/net5.0
