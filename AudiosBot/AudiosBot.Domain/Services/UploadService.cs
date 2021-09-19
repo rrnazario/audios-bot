@@ -23,7 +23,7 @@ namespace AudiosBot.Domain.Services
         private readonly IDropboxService _dropboxService;
         private readonly ICommandService _commandService;
         private Task _executingTask;
-
+        private object search;
         private readonly List<AudioFile> sentAudios = new();
 
         public UploadService(IDropboxService dropboxService, ICommandService commandService)
@@ -40,6 +40,7 @@ namespace AudiosBot.Domain.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            LogHelper.Debug($"HostedService StartAsync.");
             _bot.OnMessage += botOnMessage;
             _bot.StartReceiving(cancellationToken: cancellationToken);
 
@@ -52,10 +53,13 @@ namespace AudiosBot.Domain.Services
 
         private void botOnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
+            LogHelper.Debug($"HostedService bot received.");
+
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Audio ||
                 e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Document)
             {
                 //e.Message.Audio.FileId
+                LogHelper.Debug($"HostedService File received.");
                 var file = _bot.GetFileAsync(e.Message.Document?.FileId ?? e.Message.Audio?.FileId).GetAwaiter().GetResult();
                 using var fs = new FileStream(e.Message.Document.FileName, FileMode.Create);
                 using BinaryReader binaryReader = new BinaryReader(fs);
@@ -71,6 +75,7 @@ namespace AudiosBot.Domain.Services
             }
             else
             {
+                LogHelper.Debug($"HostedService audio title received (?)");
                 var choosenAudio = sentAudios.LastOrDefault();
                 if (!string.IsNullOrEmpty(e.Message.Text) && TelegramHelper.UserIsAdmin(e.Message.Chat.Id.ToString()) && choosenAudio != null)
                 {
@@ -83,6 +88,8 @@ namespace AudiosBot.Domain.Services
                     sentAudios.Clear();
                 }
                 else
+                {
+                    LogHelper.Debug($"HostedService admin searching...");
                     _commandService.SearchAsync(new()
                     {
                         Term = e.Message.Text,
@@ -91,7 +98,9 @@ namespace AudiosBot.Domain.Services
                                    e.Message.Chat.Id.ToString(),
                                    e.Message.Chat.Id.ToString())
                     });
-            }            
+                }
+                
+            }
         }
 
         private async Task MonitorUploadAsync(CancellationToken token)

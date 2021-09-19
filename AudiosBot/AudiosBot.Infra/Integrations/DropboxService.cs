@@ -40,8 +40,10 @@ namespace AudiosBot.Infra.Integrations
             var result = new List<AudioFile>();
 
             var list = await client.Files.ListFolderAsync(_path);
+            LogHelper.Debug($"List entries count: {list.Entries.Count}\nsearch term: {term}");
 
-            var search = list.Entries.Where(wh => wh.Name.Contains(term));
+            var search = list.Entries.Where(wh => wh.Name.Contains(term));            
+
             var metadatas = new List<Metadata>();
 
             if (search.Any() || list.HasMore)
