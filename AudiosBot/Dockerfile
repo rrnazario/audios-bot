@@ -11,10 +11,10 @@ ARG AdminMail
 ARG Users
 
 #env vars used on whole process
-ENV TelegramBotToken=$TelegramBotToken
-ENV AdminChatId=$AdminChatId
-ENV AdminMail=$AdminMail
-ENV Users=$Users
+ENV TelegramBotToken=${TelegramBotToken}
+ENV AdminChatId=${AdminChatId}
+ENV AdminMail=${AdminMail}
+ENV Users=${Users}
 
 COPY *.sln ./
 COPY AudiosBot/*.csproj ./AudiosBot/
