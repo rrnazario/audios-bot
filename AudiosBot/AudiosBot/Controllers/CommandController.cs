@@ -1,6 +1,7 @@
 ﻿using AudiosBot.Domain.Attributes;
 using AudiosBot.Domain.Interfaces;
 using AudiosBot.Domain.Models;
+using AudiosBot.Infra.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
@@ -34,6 +35,8 @@ namespace AudiosBot.API.Controllers
             Console.WriteLine($"CONTEUDO: {conteudo}");
 
             await _commandService.DefineAsync(search);
+
+            LogHelper.Debug($"END '{nameof(Busca)}'");
 
             return Ok();
         }

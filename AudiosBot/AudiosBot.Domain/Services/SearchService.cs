@@ -1,4 +1,5 @@
 ﻿using AudiosBot.Domain.Interfaces;
+using AudiosBot.Infra.Helpers;
 using AudiosBot.Infra.Interfaces;
 using System.Collections.Generic;
 using System.IO;
@@ -24,12 +25,16 @@ namespace AudiosBot.Domain.Services
             if (audios.Any() && !Directory.Exists(currentSearchFolder))
                 Directory.CreateDirectory(currentSearchFolder);
 
+            LogHelper.Debug($"Downloading to local...");
+
             foreach (var audio in audios)
-            {
+            {                
                 var fullAudioName = $"{currentSearchFolder}\\{audio.Name}";
                 await File.WriteAllBytesAsync(fullAudioName, audio.Content);
-                result.Add(fullAudioName);
+                result.Add(fullAudioName);                
             }
+
+            LogHelper.Debug($"Done.");
 
             return result;
         }

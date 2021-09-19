@@ -22,6 +22,8 @@ namespace AudiosBot.Domain.Services
 
         public async Task DefineAsync(Search search)
         {
+            LogHelper.Debug($"[{nameof(DefineAsync)}] IsAdmin? {search.User.IsAdmin}");
+
             if (search.User.IsAdmin) return;
 
             await SearchAsync(search);
@@ -34,7 +36,8 @@ namespace AudiosBot.Domain.Services
                 await _bot.SendTextMessageAsync(search.User.Id, "Você pesquisou um termo muito pequeno. Experimente pesquisar uma palavra maior.");
 
                 return;
-            }
+            }            
+            LogHelper.Debug($"Starting process...");
 
             await _bot.SendTextMessageAsync(search.User.Id, MessageHelper.GetRandomSearchingMessage());
 

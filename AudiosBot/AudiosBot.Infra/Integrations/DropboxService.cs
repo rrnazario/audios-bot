@@ -1,4 +1,5 @@
 ﻿using AudiosBot.Infra.Constants;
+using AudiosBot.Infra.Helpers;
 using AudiosBot.Infra.Interfaces;
 using AudiosBot.Infra.Models;
 using Dropbox.Api;
@@ -33,6 +34,8 @@ namespace AudiosBot.Infra.Integrations
         }
         public async Task<List<AudioFile>> GetAudioContentAsync(string term)
         {
+            LogHelper.Debug($"{nameof(GetAudioContentAsync)}");
+
             using var client = new DropboxClient(Token);
             var result = new List<AudioFile>();
 
@@ -60,8 +63,10 @@ namespace AudiosBot.Infra.Integrations
 
                     result.Add(new() { Content = await response.GetContentAsByteArrayAsync(), Name = fileName });
                 }
-            }
 
+                LogHelper.Debug($"Found.");
+            }
+            
             return result;
         }
 
