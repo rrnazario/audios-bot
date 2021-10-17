@@ -16,11 +16,10 @@ namespace AudiosBot.Infra.Integrations
     public class DropboxService : IDropboxService
     {
         private readonly string _path = "/Audios";
-        private readonly string Token = AdminConstants.DropboxToken;
 
         public DropboxService()
         {
-            using var client = new DropboxClient(Token);
+            using var client = new DropboxClient(AdminConstants.DropboxToken);
             try
             {
                 client.Files.CreateFolderV2Async(_path).GetAwaiter().GetResult();
@@ -36,7 +35,7 @@ namespace AudiosBot.Infra.Integrations
         {
             LogHelper.Debug($"{nameof(GetAudioContentAsync)}");
 
-            using var client = new DropboxClient(Token);
+            using var client = new DropboxClient(AdminConstants.DropboxToken);
             var result = new List<AudioFile>();
 
             var list = await client.Files.ListFolderAsync(_path);
@@ -73,7 +72,7 @@ namespace AudiosBot.Infra.Integrations
 
         public async Task<bool> RemoveAudioAsync(string name)
         {
-            using var client = new DropboxClient(Token);
+            using var client = new DropboxClient(AdminConstants.DropboxToken);
             await client.Files.DeleteV2Async($"{_path}/{name}");
 
             return true;
@@ -86,7 +85,7 @@ namespace AudiosBot.Infra.Integrations
                 using var stream = new MemoryStream(content);
                 stream.Position = 0;
 
-                using var client = new DropboxClient(Token);
+                using var client = new DropboxClient(AdminConstants.DropboxToken);
                 await client.Files.UploadAsync(new CommitInfo($"{_path}/{name}", WriteMode.Overwrite.Instance), stream);
 
                 return true;

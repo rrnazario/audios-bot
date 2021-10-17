@@ -24,19 +24,19 @@ namespace AudiosBot.API.Controllers
         // GET api/command/search
         [HttpPost("Search")]
         [BasicAuth]
-        public async Task<IActionResult> Busca()
+        public async Task<IActionResult> Search()
         {
             using StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8);
 
-            var conteudo = await reader.ReadToEndAsync();
+            var content = await reader.ReadToEndAsync();
 
-            var search = new Search(conteudo);
+            var search = new Search(content);
 
-            Console.WriteLine($"CONTEUDO: {conteudo}");
+            Console.WriteLine($"CONTENT: {content}");
 
             await _commandService.DefineAsync(search);
 
-            LogHelper.Debug($"END '{nameof(Busca)}'");
+            LogHelper.Debug($"END '{nameof(Search)}'");
 
             return Ok();
         }
