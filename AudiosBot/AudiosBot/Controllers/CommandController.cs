@@ -21,6 +21,14 @@ namespace AudiosBot.API.Controllers
             _commandService = commandService;
         }
 
+        // GET api/command/heartbeat
+        [HttpPost("Heartbeat")]
+        [BasicAuth]
+        public IActionResult HeartBeat()
+        {
+            return Ok();
+        }
+
         // GET api/command/search
         [HttpPost("Search")]
         [BasicAuth]

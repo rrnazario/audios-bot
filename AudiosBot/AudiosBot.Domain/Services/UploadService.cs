@@ -30,7 +30,7 @@ namespace AudiosBot.Domain.Services
         public UploadService(IDropboxService dropboxService, ICommandService commandService)
         {
             _bot = new TelegramBotClient(AdminConstants.TelegramBotToken);
-            _bot.DeleteWebhookAsync().Wait();
+            //_bot.DeleteWebhookAsync().Wait();
 
             _dropboxService = dropboxService;
             _commandService = commandService;
