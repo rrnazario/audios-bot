@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace AudiosBot.Domain.Services
@@ -30,7 +31,7 @@ namespace AudiosBot.Domain.Services
         public UploadService(IDropboxService dropboxService, ICommandService commandService)
         {
             _bot = new TelegramBotClient(AdminConstants.TelegramBotToken);
-            //_bot.DeleteWebhookAsync().Wait();
+            //webhookInfo = _bot.GetWebhookInfoAsync().GetAwaiter().GetResult();
 
             _dropboxService = dropboxService;
             _commandService = commandService;
@@ -54,12 +55,73 @@ namespace AudiosBot.Domain.Services
 
         private async Task MonitorUploadAsync(CancellationToken token)
         {
-            _bot.StartReceiving(new UpdateHandler(sentAudios, _dropboxService, _commandService), token);
+            //_bot.StartReceiving(new UpdateHandler(sentAudios, _dropboxService, _commandService), token);
+            _bot.OnMessage += _bot_OnMessage;
+            _bot.StartReceiving();
 
             while (!token.IsCancellationRequested)
             {
                 LogHelper.Debug($"HostedService MAIN THREAD.");
+
                 await Task.Delay(TimeSpan.FromMinutes(3), token);
+            }
+        }
+
+        private async void _bot_OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs update)
+        {
+            LogHelper.Debug($"Delegated bot received.");
+
+            if (!update.Message.IsUserAdmin())
+            {
+                LogHelper.Debug($"Regular user searching...");
+                await _commandService.SearchAsync(new(update.Message));
+                return;
+            }
+
+            if (update.Message.IsValidAudioFile())
+            {
+                //e.Message.Audio.FileId
+                LogHelper.Debug($"HostedService File received.");
+                var file = await _bot.GetFileAsync(update.Message.GetFileId());
+                using var fs = new FileStream(update.Message.GetFileName(), FileMode.Create);
+                using BinaryReader binaryReader = new BinaryReader(fs);
+                fs.Position = 0;
+
+                await _bot.DownloadFileAsync(file.FilePath, fs);
+                fs.Position = 0;
+
+                sentAudios.Add(new() { Content = binaryReader.ReadBytes((int)fs.Length), Extension = file.FilePath.Split(".").Last(), OwnerId = update.Message.Chat.Id });
+                await _bot.SendTextMessageAsync(update.Message.Chat.Id, "Enviar o nome em seguida (não enviar outro arquivo).");
+
+                SystemHelper.DeleteFile(update.Message.GetFileName());
+            }
+            else
+            {
+                var choosenAudio = sentAudios.FirstOrDefault(f => f.OwnerId == update.Message.Chat.Id);
+                if (!string.IsNullOrEmpty(update.Message.Text) &&
+                    TelegramHelper.UserIsAdmin(update.Message.Chat.Id.ToString()) &&
+                    choosenAudio != null)
+                {
+                    if (update.Message.Text.Length > 255)
+                    {
+                        await _bot.SendTextMessageAsync(update.Message.Chat.Id, $"*ERRO*\n\nEnvie um nome mais curto. Tamanho atual: {update.Message.Text.Length}.", ParseMode.Markdown);
+                        return;
+                    }
+
+                    LogHelper.Debug($"HostedService audio title received");
+                    var uploadOk = await _dropboxService.UploadAudioAsync($"{update.Message.Text}.{choosenAudio.Extension}", choosenAudio.Content);
+                    if (uploadOk)
+                        await _bot.SendTextMessageAsync(update.Message.Chat.Id, "Upload feito com sucesso.");
+                    else
+                        await _bot.SendTextMessageAsync(update.Message.Chat.Id, "Erro no upload feito.");
+
+                    sentAudios.Remove(choosenAudio);
+                }
+                else
+                {
+                    LogHelper.Debug($"HostedService admin searching...");
+                    await _commandService.SearchAsync(new(update.Message));
+                }
             }
         }
 
@@ -99,18 +161,20 @@ namespace AudiosBot.Domain.Services
             if (exception is ApiRequestException apiRequestException)
             {
                 await Task.Run(() => LogHelper.Error(apiRequestException));
+                await Task.Run(() => LogHelper.Debug("Removing webhook..."));
+                await botClient.DeleteWebhookAsync();
             }
         }
 
-        public async Task HandleUpdate(ITelegramBotClient botClient, Telegram.Bot.Types.Update update, CancellationToken cancellationToken)
+        public async Task HandleUpdate(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             LogHelper.Debug($"Polling bot received.");
 
-            if (!update.Message.IsUserAdmin()) 
+            if (!update.Message.IsUserAdmin())
             {
                 LogHelper.Debug($"Regular user searching...");
                 await _commandService.SearchAsync(new(update.Message));
-                return; 
+                return;
             }
 
             if (update.Message.IsValidAudioFile())
@@ -134,7 +198,7 @@ namespace AudiosBot.Domain.Services
             {
                 var choosenAudio = sentAudios.FirstOrDefault(f => f.OwnerId == update.Message.Chat.Id);
                 if (!string.IsNullOrEmpty(update.Message.Text) &&
-                    TelegramHelper.UserIsAdmin(update.Message.Chat.Id.ToString()) && 
+                    TelegramHelper.UserIsAdmin(update.Message.Chat.Id.ToString()) &&
                     choosenAudio != null)
                 {
                     if (update.Message.Text.Length > 255)
@@ -142,7 +206,7 @@ namespace AudiosBot.Domain.Services
                         await botClient.SendTextMessageAsync(update.Message.Chat.Id, $"*ERRO*\n\nEnvie um nome mais curto. Tamanho atual: {update.Message.Text.Length}.", ParseMode.Markdown);
                         return;
                     }
-                    
+
                     LogHelper.Debug($"HostedService audio title received");
                     var uploadOk = await _dropboxService.UploadAudioAsync($"{update.Message.Text}.{choosenAudio.Extension}", choosenAudio.Content);
                     if (uploadOk)
