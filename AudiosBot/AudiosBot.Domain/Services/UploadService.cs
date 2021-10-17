@@ -59,7 +59,7 @@ namespace AudiosBot.Domain.Services
             while (!token.IsCancellationRequested)
             {
                 LogHelper.Debug($"HostedService MAIN THREAD.");
-                await Task.Delay(TimeSpan.FromSeconds(5), token);
+                await Task.Delay(TimeSpan.FromMinutes(3), token);
             }
         }
 
@@ -106,6 +106,8 @@ namespace AudiosBot.Domain.Services
         {
             LogHelper.Debug($"Polling bot received.");
 
+            if (!update.Message.IsUserAdmin()) return;
+
             if (update.Message.IsValidAudioFile())
             {
                 //e.Message.Audio.FileId
@@ -140,14 +142,7 @@ namespace AudiosBot.Domain.Services
                 else
                 {
                     LogHelper.Debug($"HostedService admin searching...");
-                    await _commandService.SearchAsync(new()
-                    {
-                        Term = update.Message.Text,
-                        User = new(update.Message.Chat.FirstName,
-                                   update.Message.Chat.LastName,
-                                   update.Message.Chat.Id.ToString(),
-                                   update.Message.Chat.Id.ToString())
-                    });
+                    await _commandService.SearchAsync(new(update.Message));
                 }
             }
         }

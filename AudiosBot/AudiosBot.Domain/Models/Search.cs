@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Telegram.Bot.Types;
 
 namespace AudiosBot.Domain.Models
 {
@@ -17,9 +14,13 @@ namespace AudiosBot.Domain.Models
         }
         public User User { get; set; }
 
-        public Search()
+        public Search(Message message)
         {
-
+            Term = message.Text;
+            User = new(message.Chat.FirstName,
+                       message.Chat.LastName,
+                       message.Chat.Id.ToString(),
+                       message.Chat.Id.ToString());
         }
 
         public Search(string conteudo) : this(JsonConvert.DeserializeObject(conteudo)) { }

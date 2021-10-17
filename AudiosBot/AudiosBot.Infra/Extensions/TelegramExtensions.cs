@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AudiosBot.Infra.Constants;
+using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -38,5 +36,8 @@ namespace AudiosBot.Infra.Extensions
 
             return allowedMessageTypes.Contains(message.Type);
         }
+
+        public static bool IsUserAdmin(this Message message) 
+            => AdminConstants.AdminChatId.Split(",").Contains(message.Chat.Id.ToString());            
     }
 }
