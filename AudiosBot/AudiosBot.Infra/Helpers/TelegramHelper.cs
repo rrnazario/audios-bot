@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -97,6 +96,6 @@ namespace AudiosBot.Infra.Helpers
                 return Path.Combine(Directory.GetCurrentDirectory(), folder);
         }
 
-        public static bool UserIsAdmin(string Id) => AdminConstants.AdminChatId.Split(",").Contains(Id);
+        public static bool UserIsAdmin(string Id) => AdminConstants.AdminChatId.Split(",").Contains(Id);       
     }
 }

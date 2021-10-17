@@ -1,6 +1,6 @@
 ﻿using AudiosBot.Domain.Interfaces;
-using AudiosBot.Domain.Models;
 using AudiosBot.Infra.Constants;
+using AudiosBot.Infra.Extensions;
 using AudiosBot.Infra.Helpers;
 using AudiosBot.Infra.Interfaces;
 using AudiosBot.Infra.Models;
@@ -9,10 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Extensions.Polling;
+using Telegram.Bot.Types.Enums;
 
 namespace AudiosBot.Domain.Services
 {
@@ -23,12 +25,13 @@ namespace AudiosBot.Domain.Services
         private readonly IDropboxService _dropboxService;
         private readonly ICommandService _commandService;
         private Task _executingTask;
-        private object search;
         private readonly List<AudioFile> sentAudios = new();
 
         public UploadService(IDropboxService dropboxService, ICommandService commandService)
         {
             _bot = new TelegramBotClient(AdminConstants.TelegramBotToken);
+            _bot.DeleteWebhookAsync().Wait();
+
             _dropboxService = dropboxService;
             _commandService = commandService;
         }
@@ -41,8 +44,6 @@ namespace AudiosBot.Domain.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             LogHelper.Debug($"HostedService StartAsync.");
-            _bot.OnMessage += botOnMessage;
-            _bot.StartReceiving(cancellationToken: cancellationToken);
 
             _executingTask = MonitorUploadAsync(cts.Token);
 
@@ -51,64 +52,14 @@ namespace AudiosBot.Domain.Services
                 : Task.CompletedTask;
         }
 
-        private void botOnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
-        {
-            LogHelper.Debug($"HostedService bot received.");
-
-            if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Audio ||
-                e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Document)
-            {
-                //e.Message.Audio.FileId
-                LogHelper.Debug($"HostedService File received.");
-                var file = _bot.GetFileAsync(e.Message.Document?.FileId ?? e.Message.Audio?.FileId).GetAwaiter().GetResult();
-                using var fs = new FileStream(e.Message.Document.FileName, FileMode.Create);
-                using BinaryReader binaryReader = new BinaryReader(fs);
-                fs.Position = 0;
-
-                _bot.DownloadFileAsync(file.FilePath, fs).GetAwaiter().GetResult();
-                fs.Position = 0;
-
-                sentAudios.Add(new() { Content = binaryReader.ReadBytes((int)fs.Length), Extension = file.FilePath.Split(".").Last() });
-                _bot.SendTextMessageAsync(e.Message.Chat.Id, "Enviar o nome em seguida (não enviar outro arquivo).").GetAwaiter().GetResult();
-
-                SystemHelper.DeleteFile(e.Message.Document.FileName);
-            }
-            else
-            {
-                LogHelper.Debug($"HostedService audio title received (?)");
-                var choosenAudio = sentAudios.LastOrDefault();
-                if (!string.IsNullOrEmpty(e.Message.Text) && TelegramHelper.UserIsAdmin(e.Message.Chat.Id.ToString()) && choosenAudio != null)
-                {
-                    var uploadOk = _dropboxService.UploadAudioAsync($"{e.Message.Text}.{choosenAudio.Extension}", choosenAudio.Content).GetAwaiter().GetResult();
-                    if (uploadOk)
-                        _bot.SendTextMessageAsync(e.Message.Chat.Id, "Upload feito com sucesso.").GetAwaiter().GetResult();
-                    else
-                        _bot.SendTextMessageAsync(e.Message.Chat.Id, "Erro no upload feito.").GetAwaiter().GetResult();
-
-                    sentAudios.Clear();
-                }
-                else
-                {
-                    LogHelper.Debug($"HostedService admin searching...");
-                    _commandService.SearchAsync(new()
-                    {
-                        Term = e.Message.Text,
-                        User = new(e.Message.Chat.FirstName,
-                                   e.Message.Chat.LastName,
-                                   e.Message.Chat.Id.ToString(),
-                                   e.Message.Chat.Id.ToString())
-                    });
-                }
-                
-            }
-        }
-
         private async Task MonitorUploadAsync(CancellationToken token)
         {
+            _bot.StartReceiving(new UpdateHandler(sentAudios, _dropboxService, _commandService), token);
+
             while (!token.IsCancellationRequested)
             {
-                LogHelper.Debug($"HostedService waiting for messages.");
-                await Task.Delay(TimeSpan.FromMinutes(5), token);
+                LogHelper.Debug($"HostedService MAIN THREAD.");
+                await Task.Delay(TimeSpan.FromSeconds(5), token);
             }
         }
 
@@ -125,6 +76,79 @@ namespace AudiosBot.Domain.Services
             finally
             {
                 await Task.WhenAny(_executingTask, Task.Delay(Timeout.Infinite, cancellationToken));
+            }
+        }
+    }
+
+    class UpdateHandler : IUpdateHandler
+    {
+        private readonly List<AudioFile> sentAudios;
+        private readonly IDropboxService _dropboxService;
+        private readonly ICommandService _commandService;
+        public UpdateHandler(List<AudioFile> audioFiles, IDropboxService dropboxService, ICommandService commandService)
+        {
+            sentAudios = audioFiles;
+            _dropboxService = dropboxService;
+            _commandService = commandService;
+        }
+
+        public UpdateType[] AllowedUpdates => new UpdateType[] { };
+
+        public async Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+        {
+            if (exception is ApiRequestException apiRequestException)
+            {
+                await Task.Run(() => LogHelper.Error(apiRequestException));
+            }
+        }
+
+        public async Task HandleUpdate(ITelegramBotClient botClient, Telegram.Bot.Types.Update update, CancellationToken cancellationToken)
+        {
+            LogHelper.Debug($"Polling bot received.");
+
+            if (update.Message.IsValidAudioFile())
+            {
+                //e.Message.Audio.FileId
+                LogHelper.Debug($"HostedService File received.");
+                var file = await botClient.GetFileAsync(update.Message.GetFileId());
+                using var fs = new FileStream(update.Message.GetFileName(), FileMode.Create);
+                using BinaryReader binaryReader = new BinaryReader(fs);
+                fs.Position = 0;
+
+                await botClient.DownloadFileAsync(file.FilePath, fs);
+                fs.Position = 0;
+
+                sentAudios.Add(new() { Content = binaryReader.ReadBytes((int)fs.Length), Extension = file.FilePath.Split(".").Last(), OwnerId = update.Message.Chat.Id });
+                await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Enviar o nome em seguida (não enviar outro arquivo).");
+
+                SystemHelper.DeleteFile(update.Message.GetFileName());
+            }
+            else
+            {
+                LogHelper.Debug($"HostedService audio title received (?)");
+                var choosenAudio = sentAudios.FirstOrDefault(f => f.OwnerId == update.Message.Chat.Id);
+                if (!string.IsNullOrEmpty(update.Message.Text) && TelegramHelper.UserIsAdmin(update.Message.Chat.Id.ToString()) && choosenAudio != null)
+                {
+                    var uploadOk = await _dropboxService.UploadAudioAsync($"{update.Message.Text}.{choosenAudio.Extension}", choosenAudio.Content);
+                    if (uploadOk)
+                        await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Upload feito com sucesso.");
+                    else
+                        await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Erro no upload feito.");
+
+                    sentAudios.Remove(choosenAudio);
+                }
+                else
+                {
+                    LogHelper.Debug($"HostedService admin searching...");
+                    await _commandService.SearchAsync(new()
+                    {
+                        Term = update.Message.Text,
+                        User = new(update.Message.Chat.FirstName,
+                                   update.Message.Chat.LastName,
+                                   update.Message.Chat.Id.ToString(),
+                                   update.Message.Chat.Id.ToString())
+                    });
+                }
             }
         }
     }
