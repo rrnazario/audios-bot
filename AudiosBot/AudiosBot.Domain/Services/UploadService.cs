@@ -106,7 +106,12 @@ namespace AudiosBot.Domain.Services
         {
             LogHelper.Debug($"Polling bot received.");
 
-            if (!update.Message.IsUserAdmin()) return;
+            if (!update.Message.IsUserAdmin()) 
+            {
+                LogHelper.Debug($"Regular user searching...");
+                await _commandService.SearchAsync(new(update.Message));
+                return; 
+            }
 
             if (update.Message.IsValidAudioFile())
             {
