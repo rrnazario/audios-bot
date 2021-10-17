@@ -127,10 +127,18 @@ namespace AudiosBot.Domain.Services
             }
             else
             {
-                LogHelper.Debug($"HostedService audio title received (?)");
                 var choosenAudio = sentAudios.FirstOrDefault(f => f.OwnerId == update.Message.Chat.Id);
-                if (!string.IsNullOrEmpty(update.Message.Text) && TelegramHelper.UserIsAdmin(update.Message.Chat.Id.ToString()) && choosenAudio != null)
+                if (!string.IsNullOrEmpty(update.Message.Text) &&
+                    TelegramHelper.UserIsAdmin(update.Message.Chat.Id.ToString()) && 
+                    choosenAudio != null)
                 {
+                    if (update.Message.Text.Length > 255)
+                    {
+                        await botClient.SendTextMessageAsync(update.Message.Chat.Id, $"*ERRO*\n\nEnvie um nome mais curto. Tamanho atual: {update.Message.Text.Length}.", ParseMode.Markdown);
+                        return;
+                    }
+                    
+                    LogHelper.Debug($"HostedService audio title received");
                     var uploadOk = await _dropboxService.UploadAudioAsync($"{update.Message.Text}.{choosenAudio.Extension}", choosenAudio.Content);
                     if (uploadOk)
                         await botClient.SendTextMessageAsync(update.Message.Chat.Id, "Upload feito com sucesso.");
