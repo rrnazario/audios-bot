@@ -1,2 +1,2 @@
 # audios-bot
-Boleiragem áudios
+Telegram bot to control an audio repository
